@@ -25,9 +25,23 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  // adding the important values
   String lastValue = 'X';
   Game game = Game();
   bool gameOver = false;
+  int turn = 0; //check if draw
+  String result = '';
+  List<int> scoreboard = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ]; // the score for the different combination of the game [Row1,2,3 Col 1,2,3]
+
   @override
   void initState() {
     // TODO: implement initState
@@ -65,35 +79,67 @@ class _GameScreenState extends State<GameScreen> {
                     crossAxisSpacing: 8.0,
                     children: List.generate(Game.boardlenth, (index) {
                       return InkWell(
-                        onTap:gameOver ?null : () {
-                          // when we click we need to add the new value to the board and refresh the screen
-                          // set toggle player JIC
-                          setState(() {
-                            game.board![index] = lastValue;
-                            
-                          });
-
-                        } ,
-
-
-                      child: Container(
-                        width: Game.blocSize,
-                        height: Game.blocSize,
-                        decoration: BoxDecoration(
-                            color: MainColor.SecondAnyColor,
-                            borderRadius: BorderRadius.circular(16.0),),
+                          onTap: gameOver
+                              ? null
+                              : () {
+                                  // when we click we need to add the new value to the board and refresh the screen
+                                  // set toggle player JIC
+                                  if (game.board![index] == '') {
+                                    setState(() {
+                                      game.board![index] = lastValue;
+                                      turn++;
+                                      gameOver = game.winnerCheck(
+                                          lastValue, index, scoreboard, 3);
+                                        if(gameOver){
+                                          result = "$lastValue IS THE WINNER";
+                                        } else if(!gameOver && turn == 9){
+                                          result = "it is a draw";
+                                          gameOver = true;
+                                        }
+                                      if (lastValue == 'X')
+                                        lastValue = 'O';
+                                      else
+                                        lastValue = 'X';
+                                    });
+                                  }
+                                },
+                          child: Container(
+                            width: Game.blocSize,
+                            height: Game.blocSize,
+                            decoration: BoxDecoration(
+                              color: MainColor.SecondAnyColor,
+                              borderRadius: BorderRadius.circular(16.0),
+                            ),
                             child: Center(
-                              child: Text(
-                                game.board![index],
-                                style: TextStyle(
-                                    color: game.board![index] == "X"
-                                        ? Colors.blue
-                                        : Colors.pink,
-                                        fontSize: 64.0,
+                                child: Text(
+                              game.board![index],
+                              style: TextStyle(
+                                color: game.board![index] == "X"
+                                    ? Colors.blue
+                                    : Colors.pink,
+                                fontSize: 64.0,
                               ),
                             )),
-                      ));
-                    })))
+                          ));
+                    }))),
+                    SizedBox(
+                      height: 25.0,
+                    ), Text(result, style: TextStyle(color: Colors.white, fontSize: 35.0),),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  // erase the board
+                  game.board = Game.initGameBoard();
+                  lastValue = 'X';
+                  gameOver = false;
+                  turn = 0;
+                  result = '';
+                  scoreboard = [0,0,0,0,0,0,0,0];
+                });
+              },
+              icon: Icon(Icons.replay),
+              label: Text('Repeat the game'),
+            )
           ]),
     );
   } // the first step is to organize our folder structucture
